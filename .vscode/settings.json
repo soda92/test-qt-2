@@ -85,7 +85,8 @@
         "xmemory": "cpp",
         "xstddef": "cpp",
         "xtr1common": "cpp",
-        "xtree": "cpp"
+        "xtree": "cpp",
+        "codecvt": "cpp"
     },
     "cmake.buildDirectory": "${workspaceFolder}/build/msvc"
 }

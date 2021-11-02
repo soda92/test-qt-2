@@ -7,7 +7,7 @@
 #include <iostream>
 namespace fs = std::filesystem;
 #include <boost/algorithm/string.hpp>
-#include <qt5/QtCore/QObject>
+#include <QObject>
 
 namespace str = boost::algorithm;
 
@@ -174,7 +174,7 @@ std::vector<std::wstring> get_path_ftp_dir_listing(std::wstring username, std::w
     // curl_easy_setopt(handle, CURLOPT_CUSTOMREQUEST, "NLST");
     curl_easy_setopt(handle, CURLOPT_DIRLISTONLY, 1L);
 
-    curl_easy_setopt(handle, CURLOPT_VERBOSE, 1L);
+    // curl_easy_setopt(handle, CURLOPT_VERBOSE, 1L);
     curl_easy_setopt(handle, CURLOPT_NOPROXY, "*");
     curl_easy_setopt(handle, CURLOPT_URL, WS2S(path).c_str());
     curl_easy_setopt(handle, CURLOPT_USERNAME, WS2S(username).c_str());
@@ -191,6 +191,10 @@ std::vector<std::wstring> get_path_ftp_dir_listing(std::wstring username, std::w
     curl_easy_perform(handle);
     std::vector<std::string> v2;
 
+    // QString qs = QString::fromStdWString(ss);
+    // std::string qss = qs.toStdString();
+    // std::cout << qss << std::endl;
+
     str::split(v2, ss, [](auto c)
                { return c == '\n'; });
 
@@ -206,6 +210,72 @@ std::vector<std::wstring> get_path_ftp_dir_listing(std::wstring username, std::w
     }
     curl_easy_cleanup(handle);
     return dirnames;
+}
+
+static size_t throw_away(void *ptr, size_t size, size_t nmemb, void *data)
+{
+    (void)ptr;
+    (void)data;
+    /* we are not interested in the headers itself,
+     so we only return the size we would have saved ... */
+    return (size_t)(size * nmemb);
+}
+
+double get_file_size(std::wstring file_path, std::wstring username, std::wstring passwd)
+{
+    std::string path2 = WS2S(file_path);
+    str::replace_all(path2, "\\", "/");
+    const char *ftpurl = path2.c_str();
+    CURL *curl;
+    CURLcode res;
+    long filetime = -1;
+    double filesize = 0.0;
+    const char *filename = strrchr(ftpurl, '/') + 1;
+
+    curl = curl_easy_init();
+    if (curl)
+    {
+        curl_easy_setopt(curl, CURLOPT_URL, path2.c_str());
+        /* No download if the file */
+        curl_easy_setopt(curl, CURLOPT_NOBODY, 1L);
+        curl_easy_setopt(curl, CURLOPT_NOPROXY, "*");
+        curl_easy_setopt(curl, CURLOPT_URL, WS2S(file_path).c_str());
+        curl_easy_setopt(curl, CURLOPT_USERNAME, WS2S(username).c_str());
+        curl_easy_setopt(curl, CURLOPT_PASSWORD, WS2S(passwd).c_str());
+        /* Ask for filetime */
+        // curl_easy_setopt(curl, CURLOPT_FILETIME, 1L);
+        curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, throw_away);
+        curl_easy_setopt(curl, CURLOPT_HEADER, 0L);
+        /* Switch on full protocol/debug output */
+        /* curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L); */
+
+        res = curl_easy_perform(curl);
+
+        if (CURLE_OK == res)
+        {
+            /* https://curl.se/libcurl/c/curl_easy_getinfo.html */
+            // res = curl_easy_getinfo(curl, CURLINFO_FILETIME, &filetime);
+            // if ((CURLE_OK == res) && (filetime >= 0))
+            // {
+            // time_t file_time = (time_t)filetime;
+            // printf("filetime %s: %s", filename, ctime(&file_time));
+            // }
+            res = curl_easy_getinfo(curl, CURLINFO_CONTENT_LENGTH_DOWNLOAD,
+                                    &filesize);
+            if ((CURLE_OK == res) && (filesize > 0.0))
+                return filesize;
+        }
+        else
+        {
+            /* we failed */
+            fprintf(stderr, "curl told us %d\n", res);
+        }
+
+        /* always cleanup */
+        curl_easy_cleanup(curl);
+    }
+
+    return 0;
 }
 
 int main()
@@ -337,6 +407,12 @@ int main()
                 /* Set a pointer to our struct to pass to the callback */
 
                 std::wofstream file;
+                if (fs::is_regular_file(out_path))
+                {
+                    std::cout << out_path.string() << " local size: " << fs::file_size(out_path) << "\n ";
+                }
+                double remote_size = get_file_size(ftp_addr2, v[2], v[3]);
+                std::cout << WS2S(ftp_addr2) << " remote size: " << remote_size << "\n ";
                 // std::wstring testStr = UTF8ToGBK(out_path.wstring().c_str());
                 file.open(out_path.wstring(), std::ios::out | std::ios::binary);
                 curl_easy_setopt(handle, CURLOPT_WRITEDATA, &file);
