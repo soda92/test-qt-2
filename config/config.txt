@@ -1,0 +1,2 @@
+dest=D:/Data/
+test-sesrver 127.0.0.1 user 12345
