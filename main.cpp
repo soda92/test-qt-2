@@ -11,25 +11,6 @@ namespace fs = std::filesystem;
 
 namespace str = boost::algorithm;
 
-// struct FtpFile
-// {
-//     const char *filename;
-//     FILE *stream;
-// };
-
-// static size_t my_fwrite(void *buffer, size_t size, size_t nmemb, void *stream)
-// {
-//     struct FtpFile *out = (struct FtpFile *)stream;
-//     if (!out->stream)
-//     {
-//         /* open file for writing */
-//         out->stream = fopen(out->filename, "wb");
-//         if (!out->stream)
-//             return -1; /* failure, can't open file to write */
-//     }
-//     return fwrite(buffer, size, nmemb, out->stream);
-// }
-
 static size_t my_fwrite2(void *buffer, size_t size, size_t nmemb, std::ofstream *stream)
 {
     (*stream).write(static_cast<const char *>(buffer), size * nmemb);
@@ -285,11 +266,13 @@ int main()
                 dirnames.push_back(trimed);
             }
         }
+
         for (auto dirname : dirnames)
         {
             fmt::print("{}\n", dirname);
+            // std::string testStr = UTF8ToGBK(dirname.c_str());
             // std::cout << dirname << std::endl;
-            // continue;
+            continue;
             auto ftp_addr = fmt::format("ftp://{}/{}/{}/", addr, src_path_str, dirname);
             curl_easy_reset(handle);
             curl_easy_setopt(handle, CURLOPT_URL, ftp_addr.c_str());
@@ -355,6 +338,7 @@ int main()
                 /* Set a pointer to our struct to pass to the callback */
 
                 std::ofstream file;
+                // std::string testStr = UTF8ToGBK(out_path.string().c_str());
                 file.open(out_path.string(), std::ios::out | std::ios::binary);
                 curl_easy_setopt(handle, CURLOPT_WRITEDATA, &file);
 
