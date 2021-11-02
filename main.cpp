@@ -82,7 +82,7 @@ fs::path get_config_path(std::string arg)
         return path;
     }
 
-     path = fs::path(arg);
+    path = fs::path(arg);
     path = path.parent_path().parent_path();
     path /= "config";
     path /= "config.txt";
@@ -95,6 +95,28 @@ fs::path get_config_path(std::string arg)
 
     path = fs::path(arg);
     path = path.parent_path().parent_path();
+    path /= "config";
+    path /= "config.example.txt";
+    fmt::print("path: {}\n", path.string());
+
+    if (fs::is_regular_file(path))
+    {
+        return path;
+    }
+
+    path = fs::path(arg);
+    path = path.parent_path().parent_path().parent_path();
+    path /= "config";
+    path /= "config.txt";
+    fmt::print("path: {}\n", path.string());
+
+    if (fs::is_regular_file(path))
+    {
+        return path;
+    }
+
+    path = fs::path(arg);
+    path = path.parent_path().parent_path().parent_path();
     path /= "config";
     path /= "config.example.txt";
     fmt::print("path: {}\n", path.string());
