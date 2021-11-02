@@ -168,12 +168,48 @@ fs::path get_config_path(std::wstring arg)
     return fs::path("");
 }
 
+std::vector<std::wstring> get_path_ftp_dir_listing(std::wstring username, std::wstring passwd, std::wstring path)
+{
+    CURL *handle = curl_easy_init();
+    // curl_easy_setopt(handle, CURLOPT_CUSTOMREQUEST, "NLST");
+    curl_easy_setopt(handle, CURLOPT_DIRLISTONLY, 1L);
+
+    curl_easy_setopt(handle, CURLOPT_VERBOSE, 1L);
+    curl_easy_setopt(handle, CURLOPT_NOPROXY, "*");
+    curl_easy_setopt(handle, CURLOPT_URL, WS2S(path).c_str());
+    curl_easy_setopt(handle, CURLOPT_USERNAME, WS2S(username).c_str());
+    curl_easy_setopt(handle, CURLOPT_PASSWORD, WS2S(passwd).c_str());
+
+    // curl_easy_setopt(handle, CURLOPT_CUSTOMREQUEST, "NLST");
+    curl_easy_setopt(handle, CURLOPT_DIRLISTONLY, 1L);
+
+    // curl_easy_setopt(handle, CURLOPT_VERBOSE, 1L);
+    std::string ss = "";
+    curl_easy_setopt(handle, CURLOPT_WRITEDATA, &ss);
+    curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, writefunc);
+
+    curl_easy_perform(handle);
+    std::vector<std::string> v2;
+
+    str::split(v2, ss, [](auto c)
+               { return c == '\n'; });
+
+    std::vector<std::wstring> dirnames;
+    for (auto i : v2)
+    {
+        std::wstring trimed = str::trim_copy(S2WS(i));
+        if (trimed != L"")
+        {
+            std::wcout << trimed << L"\n";
+            dirnames.push_back(trimed);
+        }
+    }
+    curl_easy_cleanup(handle);
+    return dirnames;
+}
+
 int main()
 {
-#ifdef WIN32
-    // system("chcp 65001");
-#endif
-
     CURL *handle;
     /* global initialization */
     int rc = curl_global_init(CURL_GLOBAL_ALL);
@@ -189,6 +225,7 @@ int main()
     }
 
     std::wstring current_path = fs::current_path().wstring();
+
     std::wcout << L"current path: " << current_path << L"\n";
     auto path = get_config_path(current_path);
     if (path.wstring() == L"")
@@ -248,36 +285,7 @@ int main()
         }
         auto ftp_addr = L"ftp://" + addr + L"/" + src_path_str + L"/";
 
-        curl_easy_reset(handle);
-        curl_easy_setopt(handle, CURLOPT_URL, WS2S(ftp_addr).c_str());
-        auto username = v[2];
-        curl_easy_setopt(handle, CURLOPT_USERNAME, WS2S(username).c_str());
-        auto passwd = v[3];
-        curl_easy_setopt(handle, CURLOPT_PASSWORD, WS2S(passwd).c_str());
-        // curl_easy_setopt(handle, CURLOPT_CUSTOMREQUEST, "NLST");
-        curl_easy_setopt(handle, CURLOPT_DIRLISTONLY, 1L);
-        // curl_easy_setopt(handle, CURLOPT_VERBOSE, 1L);
-        curl_easy_setopt(handle, CURLOPT_NOPROXY, "*");
-        std::string ss = "";
-        curl_easy_setopt(handle, CURLOPT_WRITEDATA, &ss);
-        curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, writefunc);
-
-        curl_easy_perform(handle);
-        std::vector<std::string> v2;
-
-        str::split(v2, ss, [](auto c)
-                   { return c == '\n'; });
-
-        std::vector<std::wstring> dirnames;
-        for (auto i : v2)
-        {
-            std::wstring trimed = str::trim_copy(S2WS(i));
-            if (trimed != L"")
-            {
-                std::wcout << trimed << L"\n";
-                dirnames.push_back(trimed);
-            }
-        }
+        std::vector<std::wstring> dirnames = get_path_ftp_dir_listing(v[2], v[3], ftp_addr);
 
         for (auto dirname : dirnames)
         {
@@ -285,45 +293,10 @@ int main()
             // std::wstring testStr = UTF8ToGBK(dirname.c_str());
             // std::cout << dirname << std::endl;
             // continue;
-            std::vector<std::wstring> wvec = {
-                L"ftp:/",
-                addr,
-                src_path_str,
-                dirname};
-            auto ftp_addr = str::join(wvec, L"/");
-            // auto ftp_addr = fmt::format("ftp://{}/{}/{}/", addr, src_path_str, dirname);
-            curl_easy_reset(handle);
-            curl_easy_setopt(handle, CURLOPT_URL, WS2S(ftp_addr).c_str());
-            auto username = v[2];
-            curl_easy_setopt(handle, CURLOPT_USERNAME, WS2S(username).c_str());
-            auto passwd = v[3];
-            curl_easy_setopt(handle, CURLOPT_PASSWORD, WS2S(passwd).c_str());
-            // curl_easy_setopt(handle, CURLOPT_CUSTOMREQUEST, "NLST");
-            curl_easy_setopt(handle, CURLOPT_DIRLISTONLY, 1L);
-            // curl_easy_setopt(handle, CURLOPT_VERBOSE, 1L);
-            curl_easy_setopt(handle, CURLOPT_NOPROXY, "*");
-            std::string ss = "";
-            curl_easy_setopt(handle, CURLOPT_WRITEDATA, &ss);
-            curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, writefunc);
+            auto ftp_addr2 = L"ftp://" + addr + L"/" + src_path_str + L"/" + dirname + L"/";
+            std::vector<std::wstring> filenames = get_path_ftp_dir_listing(v[2], v[3], ftp_addr2);
 
-            curl_easy_perform(handle);
-
-            std::vector<std::string> vv2;
-
-            str::split(vv2, ss, [](auto c)
-                       { return c == '\n'; });
-
-            std::vector<std::wstring> dirnames;
-            for (auto i : vv2)
-            {
-                std::wstring trimed = str::trim_copy(S2WS(i));
-                if (trimed != L"")
-                {
-                    std::wcout << trimed << L"\n";
-                    dirnames.push_back(trimed);
-                }
-            }
-            for (auto filename : dirnames)
+            for (auto filename : filenames)
             {
                 fs::path out_path = fs::path(path_str);
                 out_path /= dirname;
@@ -339,17 +312,17 @@ int main()
                 // struct FtpFile ftpfile = {
                 //     strFilename, /* name to store the file as if successful */
                 //     NULL};
-                std::vector<std::wstring> wvec = {
+                std::vector<std::wstring> wvec2 = {
                     L"ftp:/",
                     addr,
                     src_path_str,
                     dirname,
                     filename};
-                auto ftp_addr = str::join(wvec, L"/");
+                auto ftp_addr2 = str::join(wvec2, L"/");
 
                 // "ftp://{}/{}/{}/", addr, src_path_str, dirname);
                 curl_easy_reset(handle);
-                curl_easy_setopt(handle, CURLOPT_URL, WS2S(ftp_addr).c_str());
+                curl_easy_setopt(handle, CURLOPT_URL, WS2S(ftp_addr2).c_str());
                 auto username = v[2];
                 curl_easy_setopt(handle, CURLOPT_USERNAME, WS2S(username).c_str());
                 auto passwd = v[3];
