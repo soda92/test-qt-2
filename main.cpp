@@ -1,19 +1,19 @@
 #include <string>
 #include <vector>
 #include <fstream>
-#include <fmt/core.h>
 #include <curl/curl.h>
 #include <filesystem>
 #include <cstdlib>
 #include <iostream>
 namespace fs = std::filesystem;
 #include <boost/algorithm/string.hpp>
+#include <qt5/QtCore/QObject>
 
 namespace str = boost::algorithm;
 
-static size_t my_fwrite2(void *buffer, size_t size, size_t nmemb, std::ofstream *stream)
+static size_t my_fwrite2(void *buffer, size_t size, size_t nmemb, std::wofstream *stream)
 {
-    (*stream).write(static_cast<const char *>(buffer), size * nmemb);
+    (*stream).write(static_cast<const wchar_t *>(buffer), size * nmemb);
     return size * nmemb;
 }
 
@@ -28,12 +28,24 @@ void write_callback(void *data, size_t size, size_t nmemb, void *ptr)
     fwrite(data, size, nmemb, stdout);
 }
 
-fs::path get_config_path(std::string arg)
+std::wstring S2WS(std::string s)
+{
+    QString qs = QString::fromStdString(s);
+    return qs.toStdWString();
+}
+
+std::string WS2S(std::wstring s)
+{
+    QString qs = QString::fromStdWString(s);
+    return qs.toStdString();
+}
+
+fs::path get_config_path(std::wstring arg)
 {
     auto path = fs::path(arg);
     path = path.parent_path();
     path /= "config.txt";
-    fmt::print("path: {}\n", path.string());
+    std::wcout << L"path: " << path.wstring() << L"\n";
 
     if (fs::is_regular_file(path))
     {
@@ -41,7 +53,7 @@ fs::path get_config_path(std::string arg)
     }
     path = path.parent_path();
     path /= "config.example.txt";
-    fmt::print("path: {}\n", path.string());
+    std::wcout << L"path: " << path.wstring() << L"\n";
 
     if (fs::is_regular_file(path))
     {
@@ -51,7 +63,7 @@ fs::path get_config_path(std::string arg)
     path = fs::path(arg);
     path /= "config";
     path /= "config.txt";
-    fmt::print("path: {}\n", path.string());
+    std::wcout << L"path: " << path.wstring() << L"\n";
 
     if (fs::is_regular_file(path))
     {
@@ -61,7 +73,7 @@ fs::path get_config_path(std::string arg)
     path = fs::path(arg);
     path /= "config";
     path /= "config.example.txt";
-    fmt::print("path: {}\n", path.string());
+    std::wcout << L"path: " << path.wstring() << L"\n";
 
     if (fs::is_regular_file(path))
     {
@@ -70,7 +82,7 @@ fs::path get_config_path(std::string arg)
 
     path = path.parent_path().parent_path();
     path /= "config.txt";
-    fmt::print("path: {}\n", path.string());
+    std::wcout << L"path: " << path.wstring() << L"\n";
 
     if (fs::is_regular_file(path))
     {
@@ -79,7 +91,7 @@ fs::path get_config_path(std::string arg)
 
     path = path.parent_path();
     path /= "config.example.txt";
-    fmt::print("path: {}\n", path.string());
+    std::wcout << L"path: " << path.wstring() << L"\n";
 
     if (fs::is_regular_file(path))
     {
@@ -90,7 +102,7 @@ fs::path get_config_path(std::string arg)
     path = path.parent_path();
     path /= "config";
     path /= "config.txt";
-    fmt::print("path: {}\n", path.string());
+    std::wcout << L"path: " << path.wstring() << L"\n";
 
     if (fs::is_regular_file(path))
     {
@@ -101,18 +113,7 @@ fs::path get_config_path(std::string arg)
     path = path.parent_path();
     path /= "config";
     path /= "config.example.txt";
-    fmt::print("path: {}\n", path.string());
-
-    if (fs::is_regular_file(path))
-    {
-        return path;
-    }
-
-    path = fs::path(arg);
-    path = path.parent_path().parent_path();
-    path /= "config";
-    path /= "config.txt";
-    fmt::print("path: {}\n", path.string());
+    std::wcout << L"path: " << path.wstring() << L"\n";
 
     if (fs::is_regular_file(path))
     {
@@ -122,8 +123,19 @@ fs::path get_config_path(std::string arg)
     path = fs::path(arg);
     path = path.parent_path().parent_path();
     path /= "config";
+    path /= "config.txt";
+    std::wcout << L"path: " << path.wstring() << L"\n";
+
+    if (fs::is_regular_file(path))
+    {
+        return path;
+    }
+
+    path = fs::path(arg);
+    path = path.parent_path().parent_path();
+    path /= "config";
     path /= "config.example.txt";
-    fmt::print("path: {}\n", path.string());
+    std::wcout << L"path: " << path.wstring() << L"\n";
 
     if (fs::is_regular_file(path))
     {
@@ -134,7 +146,7 @@ fs::path get_config_path(std::string arg)
     path = path.parent_path().parent_path().parent_path();
     path /= "config";
     path /= "config.txt";
-    fmt::print("path: {}\n", path.string());
+    std::wcout << L"path: " << path.wstring() << L"\n";
 
     if (fs::is_regular_file(path))
     {
@@ -145,14 +157,14 @@ fs::path get_config_path(std::string arg)
     path = path.parent_path().parent_path().parent_path();
     path /= "config";
     path /= "config.example.txt";
-    fmt::print("path: {}\n", path.string());
+    std::wcout << L"path: " << path.wstring() << L"\n";
 
     if (fs::is_regular_file(path))
     {
         return path;
     }
 
-    fmt::print("error: can't find config file\n");
+    std::wcout << L"error: can't find config file\n";
     return fs::path("");
 }
 
@@ -176,47 +188,47 @@ int main()
         return CURLE_OUT_OF_MEMORY;
     }
 
-    std::string current_path = fs::current_path().string();
-    fmt::print("current path: {}\n", current_path);
+    std::wstring current_path = fs::current_path().wstring();
+    std::wcout << L"current path: " << current_path << L"\n";
     auto path = get_config_path(current_path);
-    if (path.string() == "")
+    if (path.wstring() == L"")
     {
         return -1;
     }
-    fmt::print("path: {}\n", path.string());
+    std::wcout << L"path: " << path.wstring() << L"\n";
 
-    std::ifstream file(path);
-    std::vector<std::string> data;
-    std::string line;
+    std::wifstream file(path);
+    std::vector<std::wstring> data;
+    std::wstring line;
     while (std::getline(file, line))
     {
         data.push_back(line);
     }
     auto path_str = data[0];
-    std::vector<std::string> v;
+    std::vector<std::wstring> v;
     str::split(v, path_str, [](auto c)
                { return c == '='; });
     path_str = v.at(1);
-    fmt::print("{}\n", path_str);
+    std::wcout << path_str << L"\n";
 
     if (!(path_str[1] == ':'))
     {
         auto cur = fs::path(current_path);
         cur /= path_str;
-        path_str = cur.string();
+        path_str = cur.wstring();
     }
-    fmt::print("out path: {}\n", path_str);
+    std::wcout << L"out path: " << path_str << L"\n";
 
     data.erase(data.begin());
 
     auto src_path_str = data[0];
-    // fmt::print("src_path_str: {}\n", src_path_str);
 
-    std::vector<std::string> v_dest;
+    std::vector<std::wstring> v_dest;
     str::split(v_dest, src_path_str, [](auto c)
                { return c == '='; });
     src_path_str = v_dest.at(1);
-    fmt::print("src path dir: {}\n", src_path_str);
+    std::wcout << L"src path dir: " << src_path_str << L"\n";
+
     data.erase(data.begin());
 
     for (auto line : data)
@@ -234,14 +246,14 @@ int main()
         {
             fs::create_directories(path);
         }
-        auto ftp_addr = fmt::format("ftp://{}/{}/", addr, src_path_str);
+        auto ftp_addr = L"ftp://" + addr + L"/" + src_path_str + L"/";
 
         curl_easy_reset(handle);
-        curl_easy_setopt(handle, CURLOPT_URL, ftp_addr.c_str());
+        curl_easy_setopt(handle, CURLOPT_URL, WS2S(ftp_addr).c_str());
         auto username = v[2];
-        curl_easy_setopt(handle, CURLOPT_USERNAME, username.c_str());
+        curl_easy_setopt(handle, CURLOPT_USERNAME, WS2S(username).c_str());
         auto passwd = v[3];
-        curl_easy_setopt(handle, CURLOPT_PASSWORD, passwd.c_str());
+        curl_easy_setopt(handle, CURLOPT_PASSWORD, WS2S(passwd).c_str());
         // curl_easy_setopt(handle, CURLOPT_CUSTOMREQUEST, "NLST");
         curl_easy_setopt(handle, CURLOPT_DIRLISTONLY, 1L);
         // curl_easy_setopt(handle, CURLOPT_VERBOSE, 1L);
@@ -256,30 +268,36 @@ int main()
         str::split(v2, ss, [](auto c)
                    { return c == '\n'; });
 
-        std::vector<std::string> dirnames;
+        std::vector<std::wstring> dirnames;
         for (auto i : v2)
         {
-            std::string trimed = str::trim_copy(i);
-            if (trimed != "")
+            std::wstring trimed = str::trim_copy(S2WS(i));
+            if (trimed != L"")
             {
-                fmt::print("{}\n", trimed);
+                std::wcout << trimed << L"\n";
                 dirnames.push_back(trimed);
             }
         }
 
         for (auto dirname : dirnames)
         {
-            fmt::print("{}\n", dirname);
-            // std::string testStr = UTF8ToGBK(dirname.c_str());
+            std::wcout << dirname << L"\n";
+            // std::wstring testStr = UTF8ToGBK(dirname.c_str());
             // std::cout << dirname << std::endl;
-            continue;
-            auto ftp_addr = fmt::format("ftp://{}/{}/{}/", addr, src_path_str, dirname);
+            // continue;
+            std::vector<std::wstring> wvec = {
+                L"ftp:/",
+                addr,
+                src_path_str,
+                dirname};
+            auto ftp_addr = str::join(wvec, L"/");
+            // auto ftp_addr = fmt::format("ftp://{}/{}/{}/", addr, src_path_str, dirname);
             curl_easy_reset(handle);
-            curl_easy_setopt(handle, CURLOPT_URL, ftp_addr.c_str());
+            curl_easy_setopt(handle, CURLOPT_URL, WS2S(ftp_addr).c_str());
             auto username = v[2];
-            curl_easy_setopt(handle, CURLOPT_USERNAME, username.c_str());
+            curl_easy_setopt(handle, CURLOPT_USERNAME, WS2S(username).c_str());
             auto passwd = v[3];
-            curl_easy_setopt(handle, CURLOPT_PASSWORD, passwd.c_str());
+            curl_easy_setopt(handle, CURLOPT_PASSWORD, WS2S(passwd).c_str());
             // curl_easy_setopt(handle, CURLOPT_CUSTOMREQUEST, "NLST");
             curl_easy_setopt(handle, CURLOPT_DIRLISTONLY, 1L);
             // curl_easy_setopt(handle, CURLOPT_VERBOSE, 1L);
@@ -295,13 +313,13 @@ int main()
             str::split(vv2, ss, [](auto c)
                        { return c == '\n'; });
 
-            std::vector<std::string> dirnames;
+            std::vector<std::wstring> dirnames;
             for (auto i : vv2)
             {
-                std::string trimed = str::trim_copy(i);
-                if (trimed != "")
+                std::wstring trimed = str::trim_copy(S2WS(i));
+                if (trimed != L"")
                 {
-                    fmt::print("{}\n", trimed);
+                    std::wcout << trimed << L"\n";
                     dirnames.push_back(trimed);
                 }
             }
@@ -315,19 +333,27 @@ int main()
                 }
                 out_path /= filename;
 
-                fmt::print("out file path: {}\n", out_path.string());
-                // const char *strFilename = out_path.string().c_str();
+                std::wcout << "out file path: " << out_path.wstring() << L"\n";
+                // const char *strFilename = out_path.wstring().c_str();
 
                 // struct FtpFile ftpfile = {
                 //     strFilename, /* name to store the file as if successful */
                 //     NULL};
-                auto ftp_addr = fmt::format("ftp://{}/{}/{}/{}", addr, src_path_str, dirname, filename);
+                std::vector<std::wstring> wvec = {
+                    L"ftp:/",
+                    addr,
+                    src_path_str,
+                    dirname,
+                    filename};
+                auto ftp_addr = str::join(wvec, L"/");
+
+                // "ftp://{}/{}/{}/", addr, src_path_str, dirname);
                 curl_easy_reset(handle);
-                curl_easy_setopt(handle, CURLOPT_URL, ftp_addr.c_str());
+                curl_easy_setopt(handle, CURLOPT_URL, WS2S(ftp_addr).c_str());
                 auto username = v[2];
-                curl_easy_setopt(handle, CURLOPT_USERNAME, username.c_str());
+                curl_easy_setopt(handle, CURLOPT_USERNAME, WS2S(username).c_str());
                 auto passwd = v[3];
-                curl_easy_setopt(handle, CURLOPT_PASSWORD, passwd.c_str());
+                curl_easy_setopt(handle, CURLOPT_PASSWORD, WS2S(passwd).c_str());
                 // curl_easy_setopt(handle, CURLOPT_CUSTOMREQUEST, "NLST");
                 // curl_easy_setopt(handle, CURLOPT_DIRLISTONLY, 1L);
                 // curl_easy_setopt(handle, CURLOPT_VERBOSE, 1L);
@@ -337,9 +363,9 @@ int main()
                 curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, my_fwrite2);
                 /* Set a pointer to our struct to pass to the callback */
 
-                std::ofstream file;
-                // std::string testStr = UTF8ToGBK(out_path.string().c_str());
-                file.open(out_path.string(), std::ios::out | std::ios::binary);
+                std::wofstream file;
+                // std::wstring testStr = UTF8ToGBK(out_path.wstring().c_str());
+                file.open(out_path.wstring(), std::ios::out | std::ios::binary);
                 curl_easy_setopt(handle, CURLOPT_WRITEDATA, &file);
 
                 curl_easy_perform(handle);

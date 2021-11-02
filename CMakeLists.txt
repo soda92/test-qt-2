@@ -19,7 +19,7 @@ find_package(fmt CONFIG REQUIRED)
 find_package(Boost 1.56 COMPONENTS filesystem REQUIRED)
 
 add_executable(main main.cpp)
-target_link_libraries(main PRIVATE CURL::libcurl fmt::fmt Boost::boost)
+target_link_libraries(main PRIVATE CURL::libcurl fmt::fmt Boost::boost Qt${QT_VERSION_MAJOR}::Core)
 
 set(PROJECT_SOURCES
         mainui.cpp
