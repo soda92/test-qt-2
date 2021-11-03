@@ -57,6 +57,7 @@ jobs:
 
     - name: '🪕 Test package'
       run: |
+        pip install -r requirements.txt
         python server.py &
         cp config/config.txt build/dist/
         ./build/dist/${{env.prog_name}}
