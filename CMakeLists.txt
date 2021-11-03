@@ -18,11 +18,10 @@ find_package(QT NAMES Qt6 Qt5 COMPONENTS Widgets REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets REQUIRED)
 
 find_package(CURL CONFIG REQUIRED)
-find_package(fmt CONFIG REQUIRED)
 find_package(Boost 1.56 COMPONENTS filesystem REQUIRED)
 
 add_executable(main main.cpp)
-target_link_libraries(main PRIVATE CURL::libcurl fmt::fmt Boost::boost Qt${QT_VERSION_MAJOR}::Core)
+target_link_libraries(main PRIVATE CURL::libcurl Boost::boost Qt${QT_VERSION_MAJOR}::Core)
 
 add_executable(testlocalsize testlocalsize.cpp)
 target_link_libraries(testlocalsize PRIVATE Qt${QT_VERSION_MAJOR}::Core)
