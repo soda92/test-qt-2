@@ -417,7 +417,7 @@ int main()
                 std::ofstream file;
 
                 // std::wstring testStr = UTF8ToGBK(out_path.wstring().c_str());
-                file.open(out_path.wstring(), std::ios::out | std::ios::binary);
+                file.open(out_path.string(), std::ios::out | std::ios::binary);
                 curl_easy_setopt(handle, CURLOPT_WRITEDATA, &file);
 
                 curl_easy_perform(handle);
