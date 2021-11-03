@@ -1,3 +1,6 @@
 [submodule "ldd-check"]
 	path = ldd-check
 	url = https://github.com/soda92/ldd-check.git
+[submodule "curl"]
+	path = curl
+	url = https://github.com/curl/curl.git
