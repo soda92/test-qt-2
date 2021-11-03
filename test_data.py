@@ -14,7 +14,7 @@ conf_dest = lines[0].split("=")[1]
 conf_src = lines[1].split("=")[1]
 
 ORI_DATA_DIR = Path.joinpath(CUR, "data", conf_src)
-RST_DATA_DIR = Path.joinpath(CUR, conf_dest)
+RST_DATA_DIR = Path.joinpath(CUR, "build", "dist", conf_dest)
 
 
 def test_data():
@@ -37,3 +37,4 @@ def test_data():
                     content2 = f2.readlines()
 
                     assert(content1 == content2)
+
