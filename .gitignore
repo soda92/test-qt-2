@@ -73,3 +73,5 @@ Thumbs.db
 *.exe
 
 CMakeLists.txt.user
+__pycache__
+.pytest_cache

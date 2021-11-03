@@ -320,10 +320,17 @@ int main()
 
     if (!(path_str[1] == ':'))
     {
+        std::vector<std::wstring> vec_path;
+        str::split(vec_path, path_str, [](auto c)
+                   { return c == '/'; });
         auto cur = fs::path(current_path);
-        cur /= path_str;
+        for (auto folder : vec_path)
+        {
+            cur /= folder;
+        }
         path_str = cur.wstring();
     }
+
     std::wcout << L"out path: " << path_str << L"\n";
 
     data.erase(data.begin());
@@ -345,8 +352,8 @@ int main()
         // {
         //     fmt::print("{}\n", i);
         // }
-        auto addr = v[1];
         auto dirname = v[0];
+        auto addr = v[1];
         auto path = fs::path(path_str);
         path /= dirname;
         if (!fs::is_directory(path))
@@ -372,7 +379,7 @@ int main()
                 out_path /= dirname;
                 if (!fs::is_directory(out_path))
                 {
-                    fs::create_directory(out_path);
+                    fs::create_directories(out_path);
                 }
                 out_path /= filename;
 
@@ -396,7 +403,6 @@ int main()
                 }
                 double remote_size = get_file_size(ftp_addr2, v[2], v[3]);
                 std::cout << WS2S(ftp_addr2) << " remote size: " << remote_size << "\n ";
-
 
                 // "ftp://{}/{}/{}/", addr, src_path_str, dirname);
                 curl_easy_reset(handle);
