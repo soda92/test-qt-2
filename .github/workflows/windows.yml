@@ -9,7 +9,7 @@ jobs:
       run:
         shell: msys2 {0}
     env:
-      prog_name: mainui.exe
+      prog_name: main.exe
 
     steps:
     - name: '🧰 Checkout'
