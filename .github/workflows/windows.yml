@@ -29,15 +29,27 @@ jobs:
           mingw-w64-x86_64-ninja
           mingw-w64-x86_64-gcc
           mingw-w64-x86_64-python
-          mingw-w64-x86_64-curl
           mingw-w64-x86_64-boost
+
+    - name: '🚧 Build curl'
+      run: |
+        cd curl
+        cmake \
+          -B build/mingw \
+          -G "Ninja" \
+          -DBUILD_SHARED_LIBS=OFF
+        cmake --build build
+        cd build/mingw
+        cmake --install . --prefix=install
+        cd ../..
 
     - name: '🚧 Build package'
       run: |
         cmake \
           -B build \
           -G "Ninja" \
-          -DCMAKE_PREFIX_PATH=/mingw64/qt5-static
+          -DCMAKE_PREFIX_PATH=/mingw64/qt5-static \
+          -DCURL_DIR=curl/build/mingw/install/lib/cmake/CURL
         cmake --build build
         mkdir build/dist
         cp build/${{env.prog_name}} build/dist

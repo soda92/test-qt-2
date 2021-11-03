@@ -351,7 +351,7 @@ int main()
         path /= dirname;
         if (!fs::is_directory(path))
         {
-            fs::create_directories(path);
+            // fs::create_directories(path);
         }
         auto ftp_addr = L"ftp://" + addr + L"/" + src_path_str + L"/";
 
