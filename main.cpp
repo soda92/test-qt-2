@@ -184,7 +184,7 @@ std::vector<std::wstring> get_path_ftp_dir_listing(std::wstring username, std::w
     curl_easy_setopt(handle, CURLOPT_DIRLISTONLY, 1L);
 
     // curl_easy_setopt(handle, CURLOPT_VERBOSE, 1L);
-    std::string ss = "";
+    std::string ss("");
     curl_easy_setopt(handle, CURLOPT_WRITEDATA, &ss);
     curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, writefunc);
 
@@ -390,6 +390,14 @@ int main()
                     filename};
                 auto ftp_addr2 = str::join(wvec2, L"/");
 
+                if (fs::is_regular_file(out_path))
+                {
+                    std::cout << out_path.string() << " local size: " << fs::file_size(out_path) << "\n ";
+                }
+                double remote_size = get_file_size(ftp_addr2, v[2], v[3]);
+                std::cout << WS2S(ftp_addr2) << " remote size: " << remote_size << "\n ";
+
+
                 // "ftp://{}/{}/{}/", addr, src_path_str, dirname);
                 curl_easy_reset(handle);
                 curl_easy_setopt(handle, CURLOPT_URL, WS2S(ftp_addr2).c_str());
@@ -406,13 +414,8 @@ int main()
                 curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, my_fwrite2);
                 /* Set a pointer to our struct to pass to the callback */
 
-                std::wofstream file;
-                if (fs::is_regular_file(out_path))
-                {
-                    std::cout << out_path.string() << " local size: " << fs::file_size(out_path) << "\n ";
-                }
-                double remote_size = get_file_size(ftp_addr2, v[2], v[3]);
-                std::cout << WS2S(ftp_addr2) << " remote size: " << remote_size << "\n ";
+                std::ofstream file;
+
                 // std::wstring testStr = UTF8ToGBK(out_path.wstring().c_str());
                 file.open(out_path.wstring(), std::ios::out | std::ios::binary);
                 curl_easy_setopt(handle, CURLOPT_WRITEDATA, &file);

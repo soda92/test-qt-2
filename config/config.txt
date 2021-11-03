@@ -1,3 +1,3 @@
 dest=build/data
 src=lamp_sample
-test-sesrver 192.168.1.79 toybrick toybrick
+test-sesrver 127.0.0.1 user 12345

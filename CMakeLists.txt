@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 3.5)
 
 project(test-qt-2 VERSION 0.1 LANGUAGES CXX)
 
+add_compile_options("$<$<C_COMPILER_ID:MSVC>:/utf-8>")
+add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
+
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 set(CMAKE_AUTOUIC ON)
