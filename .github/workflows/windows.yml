@@ -38,7 +38,7 @@ jobs:
           -B build/mingw \
           -G "Ninja" \
           -DBUILD_SHARED_LIBS=OFF
-        cmake --build build
+        cmake --build build/mingw
         cd build/mingw
         cmake --install . --prefix=install
         cd ../..
